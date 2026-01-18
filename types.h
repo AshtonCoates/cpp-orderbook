@@ -2,13 +2,17 @@
 
 using Price = float;
 using Quantity = unsigned int;
-using ID = unsigned int;
+using Id = unsigned int;
 
 enum class Side {Buy, Sell};
+
+enum class OrderType {Market, Limit};
 
 struct Order {
   Side side;
   Price price;
   Quantity quantity;
-  ID id;
+  OrderType type;
+  Id id;
+  Order(Side side_, Price price_, Quantity quantity_, OrderType type_);
 };

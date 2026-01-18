@@ -1,0 +1,26 @@
+[
+  {
+    "file": "main.cpp",
+    "arguments": [
+      "g++",
+      "-std=c++20",
+      "main.cpp",
+      "-o",
+      "orderbook"
+    ],
+    "directory": "/Users/eaglehawkinator/CodingProjects/cpp-orderbook",
+    "output": "orderbook"
+  },
+  {
+    "file": "book.cpp",
+    "arguments": [
+      "g++",
+      "-std=c++20",
+      "book.cpp",
+      "-o",
+      "orderbook"
+    ],
+    "directory": "/Users/eaglehawkinator/CodingProjects/cpp-orderbook",
+    "output": "orderbook"
+  }
+]
