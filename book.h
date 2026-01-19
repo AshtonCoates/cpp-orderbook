@@ -3,15 +3,18 @@
 #include <list>
 #include <unordered_map>
 #include <vector>
-#include <iterator>
 #include "types.h"
+
+using OrderIter = std::list<Order>::iterator;
 
 struct LevelInfo {
   LevelInfo(Price price_);
-  std::list<Order>::iterator add_order(Order order);
+  OrderIter add_order(Order order);
   Price price;
   Quantity total_quantity;
   std::list<Order> orders;
+
+  Quantity match_order(Quantity quantity); // returns remaining quantity left unfilled
 };
 
 // stored in Orderbook.order_map
@@ -27,8 +30,9 @@ class Orderbook {
   std::vector<LevelInfo> asks;
   std::unordered_map<Id, OrderHandle> order_map;
 
-  void fill_market_order(Order& order);
-  void place_limit_order(Order&& order);
+  void fill_market_order(Order order);
+  void place_limit_order(Order order);
+  LevelInfo& find_level(Side side, Price price);
 
 public:
   Orderbook();
