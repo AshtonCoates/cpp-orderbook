@@ -24,6 +24,7 @@ void LevelInfo::match_order(Order& order) {
     if (remaining >= other_quantity) {
       remaining -= other_quantity;
       orders.pop_front();
+      total_quantity -= other_quantity;
     } else {
       other_quantity -= remaining;
       remaining = 0;
@@ -65,8 +66,16 @@ void Orderbook::place_limit_order(Order order) {
       break; // no matches to be made
     }
 
-    assert(false && "match making logic not implemented yet");
-
+    auto& top_level = opp_book[0];
+    top_level.match_order(order);
+    if (top_level.total_quantity == 0) {
+      auto& cmp = (order.side == Side::Buy) ? bid_comp : ask_comp;
+      std::pop_heap(opp_book.begin(), opp_book.end(), cmp);
+    }
+  }
+  if (order.quantity > 0) {
+    auto& order_level = find_level(order.side, order.price);
+    order_level.add_order(std::move(order));
   }
 }
 
