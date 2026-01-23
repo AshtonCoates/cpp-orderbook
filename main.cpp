@@ -6,4 +6,7 @@
 int main() {
   Order order(Side::Buy, 250.f, 100, OrderType::Limit);
   std::cout << "order created with id " << order.id << std::endl;
+
+  auto book = Orderbook();
+  std::cout << "orderbook created" << std::endl;
 }

@@ -5,6 +5,7 @@
 #include "book.h"
 
 
+
 LevelInfo::LevelInfo(Price price_)
   :price(price_), total_quantity(0) {}
 
@@ -14,8 +15,8 @@ OrderIter LevelInfo::add_order(Order order) {
   return iter;
 }
 
-Quantity LevelInfo::match_order(Quantity quantity) {
-  Quantity remaining = quantity;
+void LevelInfo::match_order(Order& order) {
+  Quantity& remaining = order.quantity;
   while (!orders.empty() && remaining > 0) {
     Order& other_order = orders.front();
     Quantity& other_quantity = other_order.quantity;
@@ -28,7 +29,6 @@ Quantity LevelInfo::match_order(Quantity quantity) {
       remaining = 0;
     }
   }
-  return remaining;
 }
 
 
@@ -53,10 +53,24 @@ Quantity Orderbook::get_bid_quantity() {
 }
 
 void Orderbook::place_limit_order(Order order) {
-  assert(false && "not implemented");
+  auto& book = (order.side == Side::Buy) ? bids : asks;
+  auto& opp_book = (order.side == Side::Sell) ? bids : asks;
+
+  // first match our order with other side
+  while (!opp_book.empty() && order.quantity > 0) {
+    if (
+      (order.side == Side::Buy && opp_book[0].price < order.price) ||
+      (order.side == Side::Sell && opp_book[0].price > order.price)
+    ) {
+      break; // no matches to be made
+    }
+
+    assert(false && "match making logic not implemented yet");
+
+  }
 }
 
-void Orderbook::fill_market_order(Order order) {
+void Orderbook::place_market_order(Order order) {
   Price price = std::numeric_limits<float>::infinity();
   if (order.side == Side::Sell) { price *= -1; }
   place_limit_order(Order{order.side, 
@@ -73,8 +87,19 @@ void Orderbook::place_order(Order order) {
     case OrderType::Limit:
       place_limit_order(std::move(order));
     case OrderType::Market:
-      fill_market_order(std::move(order));
+      place_market_order(std::move(order));
   }
+}
+
+// comparator used for heap operations
+bool BookComp::operator()(const LevelInfo& a, const LevelInfo& b) const {
+  switch(side) {
+    case Side::Buy:
+      return a.price > b.price;
+    case Side::Sell:
+      return a.price < b.price;
+  }
+  assert(false && "undefined side");
 }
 
 LevelInfo& Orderbook::find_level(Side side, Price price) {
