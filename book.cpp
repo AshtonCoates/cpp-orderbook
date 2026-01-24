@@ -32,6 +32,12 @@ void LevelInfo::match_order(Order& order) {
   }
 }
 
+void LevelInfo::cancel_order(OrderIter iter) {
+  orders.erase(iter);
+}
+
+
+
 
 Price Orderbook::get_bid() {
   auto& top_level = bids.front();
@@ -73,9 +79,13 @@ void Orderbook::place_limit_order(Order order) {
       std::pop_heap(opp_book.begin(), opp_book.end(), cmp);
     }
   }
+
+  // if there is quantity left over, place on the stack and store our handle
   if (order.quantity > 0) {
     auto& order_level = find_level(order.side, order.price);
-    order_level.add_order(std::move(order));
+    OrderIter iter = order_level.add_order(std::move(order));
+    OrderHandle handle = OrderHandle{iter, order.price, order.side};
+    order_map[order.id] = handle;
   }
 }
 
@@ -120,4 +130,10 @@ LevelInfo& Orderbook::find_level(Side side, Price price) {
     }
   }
   assert(false && "level not found");
+}
+
+void Orderbook::cancel_order(Id id) {
+  OrderHandle handle = order_map.at(id);
+  LevelInfo& level = find_level(handle.side, handle.price);
+  level.cancel_order(handle.iter);
 }

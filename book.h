@@ -15,12 +15,13 @@ struct LevelInfo {
   std::list<Order> orders;
 
   void match_order(Order& order); 
+  void cancel_order(OrderIter);
 };
 
 // stored in Orderbook.order_map
 // gives us enough info to search for our orders list in the heap
 struct OrderHandle {
-  std::list<Order>::iterator iter;
+  OrderIter iter;
   Price price;
   Side side;
 };
