@@ -34,7 +34,10 @@ void LevelInfo::match_order(Order& order) {
 
 void LevelInfo::cancel_order(OrderIter iter) {
   orders.erase(iter);
+  // TODO: need to erase quantity 
+  // total_quantity -= 
 }
+
 
 
 
