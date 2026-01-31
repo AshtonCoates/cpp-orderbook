@@ -38,6 +38,8 @@ void LevelInfo::match_order(Order& order) {
 void LevelInfo::cancel_order(OrderIter iter) {
   total_quantity -= iter->quantity;
   orders.erase(iter);
+  // TODO: trim this LevelInfo from the Orderbook
+  // if it's empty after the cancel
 }
 
 

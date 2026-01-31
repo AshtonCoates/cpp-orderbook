@@ -1,5 +1,4 @@
 #include <iostream>
-#include <vector>
 #include "types.h"
 #include "book.h"
 
