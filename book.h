@@ -3,6 +3,8 @@
 #include <list>
 #include <unordered_map>
 #include <vector>
+#include <optional>
+#include <functional>
 #include "types.h"
 
 using OrderIter = std::list<Order>::iterator;
@@ -43,7 +45,7 @@ class Orderbook {
 
   void place_limit_order(Order order);
   void place_market_order(Order order);
-  LevelInfo& find_level(Side side, Price price);
+  std::optional<std::reference_wrapper<LevelInfo>> find_level(Side side, Price price);
 
 public:
   Orderbook() // constructor

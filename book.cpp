@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <functional>
 #include <utility> // for std::move
 #include <limits>
+#include <optional>
+#include <cassert>
 #include "types.h"
 #include "book.h"
 
@@ -33,9 +36,8 @@ void LevelInfo::match_order(Order& order) {
 }
 
 void LevelInfo::cancel_order(OrderIter iter) {
+  total_quantity -= iter->quantity;
   orders.erase(iter);
-  // TODO: need to erase quantity 
-  // total_quantity -= 
 }
 
 
@@ -83,10 +85,18 @@ void Orderbook::place_limit_order(Order order) {
     }
   }
 
-  // if there is quantity left over, place on the stack and store our handle
+  // if there is quantity left over, place on the orderbook and store our handle
   if (order.quantity > 0) {
-    auto& order_level = find_level(order.side, order.price);
-    OrderIter iter = order_level.add_order(std::move(order));
+    OrderIter iter;
+    if (auto opt_level = find_level(order.side, order.price)) {
+      LevelInfo& order_level = opt_level->get();
+      iter = order_level.add_order(std::move(order));
+    } else {
+      LevelInfo level = LevelInfo(order.price);
+      iter = level.add_order(std::move(order));
+      book.push_back(std::move(level));
+      std::push_heap(book.begin(), book.end(), BookComp(order.side));
+    }
     OrderHandle handle = OrderHandle{iter, order.price, order.side};
     order_map[order.id] = handle;
   }
@@ -124,7 +134,7 @@ bool BookComp::operator()(const LevelInfo& a, const LevelInfo& b) const {
   assert(false && "undefined side");
 }
 
-LevelInfo& Orderbook::find_level(Side side, Price price) {
+std::optional<std::reference_wrapper<LevelInfo>> Orderbook::find_level(Side side, Price price) {
   std::vector<LevelInfo>& book = (side == Side::Buy) ? bids : asks;
 
   for (auto& level : book) {
@@ -132,11 +142,11 @@ LevelInfo& Orderbook::find_level(Side side, Price price) {
       return level;
     }
   }
-  assert(false && "level not found");
+  return {};
 }
 
 void Orderbook::cancel_order(Id id) {
   OrderHandle handle = order_map.at(id);
-  LevelInfo& level = find_level(handle.side, handle.price);
+  LevelInfo& level = find_level(handle.side, handle.price).value();
   level.cancel_order(handle.iter);
 }
