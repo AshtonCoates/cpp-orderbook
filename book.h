@@ -17,7 +17,7 @@ struct LevelInfo {
   std::list<Order> orders;
 
   void match_order(Order& order); 
-  void cancel_order(OrderIter);
+  Quantity cancel_order(OrderIter);
 };
 
 // stored in Orderbook.order_map
@@ -35,6 +35,7 @@ struct BookComp {
   bool operator()(const LevelInfo& a, const LevelInfo& b) const;
 };
 
+using LevelIter = std::vector<LevelInfo>::iterator;
 class Orderbook {
   std::vector<LevelInfo> bids;
   std::vector<LevelInfo> asks;
@@ -45,7 +46,8 @@ class Orderbook {
 
   void place_limit_order(Order order);
   void place_market_order(Order order);
-  std::optional<std::reference_wrapper<LevelInfo>> find_level(Side side, Price price);
+  void pop_level(LevelIter iter, Side side);
+  LevelIter find_level(Side side, Price price);
 
 public:
   Orderbook() // constructor

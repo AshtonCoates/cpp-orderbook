@@ -35,11 +35,10 @@ void LevelInfo::match_order(Order& order) {
   }
 }
 
-void LevelInfo::cancel_order(OrderIter iter) {
+Quantity LevelInfo::cancel_order(OrderIter iter) {
   total_quantity -= iter->quantity;
   orders.erase(iter);
-  // TODO: trim this LevelInfo from the Orderbook
-  // if it's empty after the cancel
+  return total_quantity;
 }
 
 
@@ -90,9 +89,9 @@ void Orderbook::place_limit_order(Order order) {
   // if there is quantity left over, place on the orderbook and store our handle
   if (order.quantity > 0) {
     OrderIter iter;
-    if (auto opt_level = find_level(order.side, order.price)) {
-      LevelInfo& order_level = opt_level->get();
-      iter = order_level.add_order(std::move(order));
+    auto opt_iter = find_level(order.side, order.price);
+    if (opt_iter != book.end()) {
+      iter = opt_iter->add_order(std::move(order));
     } else {
       LevelInfo level = LevelInfo(order.price);
       iter = level.add_order(std::move(order));
@@ -136,19 +135,29 @@ bool BookComp::operator()(const LevelInfo& a, const LevelInfo& b) const {
   assert(false && "undefined side");
 }
 
-std::optional<std::reference_wrapper<LevelInfo>> Orderbook::find_level(Side side, Price price) {
+LevelIter Orderbook::find_level(Side side, Price price) {
   std::vector<LevelInfo>& book = (side == Side::Buy) ? bids : asks;
 
-  for (auto& level : book) {
-    if (level.price == price) {
-      return level;
+  for (LevelIter it = book.begin(); it != book.end(); it++) {
+    if (it->price == price) {
+      return it;
     }
   }
-  return {};
+  return book.end();
 }
 
 void Orderbook::cancel_order(Id id) {
-  OrderHandle handle = order_map.at(id);
-  LevelInfo& level = find_level(handle.side, handle.price).value();
-  level.cancel_order(handle.iter);
+  OrderHandle& handle = order_map.at(id);
+  LevelIter level = find_level(handle.side, handle.price);
+  Quantity empty_level = level->cancel_order(handle.iter);
+  if (empty_level == 0) {
+    pop_level(level, handle.side);
+  }
+}
+
+void Orderbook::pop_level(LevelIter iter, Side side) {
+   auto& book = (side == Side::Buy) ? bids : asks;
+   auto& comp = (side == Side::Buy) ? bid_comp : ask_comp;
+   book.erase(iter);
+   std::make_heap(book.begin(), book.end(), comp);
 }
