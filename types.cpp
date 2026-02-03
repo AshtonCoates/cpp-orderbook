@@ -22,8 +22,13 @@ private:
     int curr_id = 1639; // arbitrary starting id
 };
 
-Order::Order(Side side_, Price price_, Quantity quantity_, OrderType type_)
-  : side(side_), price(price_), quantity(quantity_), type(type_) {
+Order::Order(Side side_, Price price_, Quantity quantity_,)
+  : side(side_), price(price_), quantity(quantity_), type(OrderType::Limit) {
+    id = OrderIdGen::instance().get_id();
+  }
+
+Order::Order(Side side_, Quantity quantity_,)
+  : side(side_), quantity(quantity_), type(OrderType::Market) {
     id = OrderIdGen::instance().get_id();
   }
 

@@ -3,15 +3,15 @@
 #include "book.h"
 
 int main() {
-  Order buy_order(Side::Buy, 250.f, 100, OrderType::Limit);
-  std::cout << "order created with id " << buy_order.id << std::endl;
-  auto id = buy_order.id;
-
   auto book = Orderbook();
-  std::cout << "orderbook created" << std::endl;
 
-  book.place_order(std::move(buy_order));
+  Order buy1(Side::Buy, 250.f, 100, OrderType::Limit);
+  book.place_order(std::move(buy1));
+  Order buy2(Side::Buy, 255.f, 100, OrderType::Limit);
+  book.place_order(std::move(buy2));
 
   Order sell_order(Side::Sell, 255.f, 100, OrderType::Limit);
   book.place_order(std::move(sell_order));
+
+  std::cout << book.get_bid() << std::endl;
 }
